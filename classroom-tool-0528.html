@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>嘉游助手 - 课堂互动教学工具</title>
+    <style>
+        :root {
+            --primary: #06B6D4;
+            --primary-dark: #0891B2;
+            --primary-light: #67E8F9;
+            --primary-glow: rgba(6, 182, 212, 0.4);
+            --secondary: #F97316;
+            --secondary-dark: #EA580C;
+            --accent: #A855F7;
+            --accent-light: #C084FC;
+            --success: #10B981;
+            --success-dark: #059669;
+            --danger: #EF4444;
+            --danger-dark: #DC2626;
+            --bg-dark: #0F172A;
+            --bg-card: #1E293B;
+            --bg-hover: #334155;
+            --border: #475569;
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+            --transition: 150ms ease;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: "Noto Sans SC", system-ui, sans-serif; background: var(--bg-dark); color: var(--text-primary); min-height: 100vh; line-height: 1.6; }
+        .app-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .app-header { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: var(--radius-xl); padding: 28px 36px; margin-bottom: 20px; position: relative; }
+        .app-header h1 { font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 12px; }
+        .app-header p { opacity: 0.9; margin-top: 4px; font-size: 0.95rem; }
+        .help-btn { position: absolute; top: 20px; right: 20px; padding: 10px 18px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: var(--radius-md); color: white; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: var(--transition); backdrop-filter: blur(4px); }
+        .help-btn:hover { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.5); }
+
+        .class-management { background: var(--bg-card); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+        .class-input-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .class-input-row input { flex: 1; min-width: 200px; }
+        .class-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+        .class-tab { padding: 8px 16px; background: var(--bg-hover); border: 2px solid transparent; border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; color: var(--text-secondary); transition: var(--transition); }
+        .class-tab:hover { background: rgba(6, 182, 212, 0.15); border-color: var(--primary); }
+        .class-tab.active { background: rgba(6, 182, 212, 0.2); border-color: var(--primary); color: var(--primary-light); font-weight: 600; }
+        .class-tab .student-count { font-size: 0.8rem; opacity: 0.7; }
+
+        .tab-nav { display: flex; gap: 4px; background: var(--bg-card); border-radius: var(--radius-lg); padding: 6px; margin-bottom: 16px; overflow-x: auto; }
+        .tab-btn { padding: 10px 18px; background: transparent; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); transition: var(--transition); white-space: nowrap; display: flex; align-items: center; gap: 8px; }
+        .tab-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+        .tab-btn.active { background: var(--primary); color: white; }
+
+        .main-content { background: var(--bg-card); border-radius: var(--radius-xl); padding: 24px; min-height: 500px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+        input, textarea, select { padding: 12px 16px; background: var(--bg-dark); border: 2px solid var(--border); border-radius: var(--radius-md); font-size: 0.95rem; font-family: inherit; color: var(--text-primary); transition: var(--transition); }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); }
+        textarea { resize: vertical; min-height: 80px; }
+        select { cursor: pointer; }
+
+        .btn { padding: 12px 24px; border: none; border-radius: var(--radius-md); font-size: 0.95rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: var(--transition); }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-secondary:hover { background: var(--secondary-dark); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: var(--danger-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: var(--success-dark); }
+        .btn-ghost { background: transparent; border: 2px solid var(--border); color: var(--text-secondary); }
+        .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+        .btn-sm { padding: 8px 16px; font-size: 0.85rem; }
+        .btn-icon { padding: 6px; background: transparent; border: none; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-sm); transition: var(--transition); }
+        .btn-icon:hover { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        .card { background: var(--bg-hover); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+        .student-count-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(6, 182, 212, 0.2); color: var(--primary-light); border-radius: 20px; font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; }
+        .student-list-header { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+        .student-list-title { font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+        .student-list { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; max-height: 300px; overflow-y: auto; }
+        .student-item { display: flex; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); transition: var(--transition); }
+        .student-item:last-child { border-bottom: none; }
+        .student-item:nth-child(even) { background: rgba(0, 0, 0, 0.15); }
+        .student-item:hover { background: rgba(6, 182, 212, 0.1); }
+        .student-item .序号 { width: 40px; color: var(--text-muted); font-size: 0.85rem; }
+        .student-item .姓名 { flex: 1; }
+        .student-item .删除 { opacity: 0; transition: var(--transition); }
+        .student-item:hover .删除 { opacity: 1; }
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 12px; }
+
+        /* Groups */
+        .group-mode-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .group-mode-select { display: flex; gap: 8px; }
+        .group-mode-btn { padding: 10px 18px; background: var(--bg-dark); border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); transition: var(--transition); }
+        .group-mode-btn.active { background: rgba(168, 85, 247, 0.2); border-color: var(--accent); color: var(--accent-light); }
+        .group-controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+        .group-controls input { width: 140px; }
+        .group-result-title { font-weight: 600; color: var(--text-secondary); margin-bottom: 14px; }
+        .groups-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+        .group-card { background: var(--bg-dark); border: 2px solid var(--border); border-radius: var(--radius-lg); padding: 16px; transition: var(--transition); }
+        .group-card:hover { border-color: var(--accent); }
+        .group-card .group-header { font-weight: 700; color: var(--accent-light); margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .group-card .group-header-left { display: flex; align-items: center; gap: 10px; }
+        .group-card .group-color { width: 12px; height: 12px; border-radius: 50%; }
+        .group-card .student-name { padding: 6px 0; font-size: 0.9rem; color: var(--text-secondary); }
+        .group-card .student-name::before { content: '› '; color: var(--primary); }
+
+        /* Leaderboard */
+        .leaderboard { background: var(--bg-dark); border-radius: var(--radius-lg); padding: 20px; margin-top: 20px; }
+        .leaderboard-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .leaderboard-list { display: flex; flex-direction: column; gap: 10px; }
+        .leaderboard-item { display: flex; align-items: center; padding: 12px 16px; background: var(--bg-hover); border-radius: var(--radius-md); gap: 12px; }
+        .leaderboard-item .rank { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: var(--accent); color: white; border-radius: 50%; font-weight: 700; font-size: 0.85rem; }
+        .leaderboard-item.rank-1 .rank { background: #FFD700; color: #000; }
+        .leaderboard-item.rank-2 .rank { background: #C0C0C0; color: #000; }
+        .leaderboard-item.rank-3 .rank { background: #CD7F32; color: #fff; }
+        .leaderboard-item .group-name { flex: 1; font-weight: 600; }
+        .leaderboard-item .score { font-size: 1.2rem; font-weight: 700; color: var(--success); min-width: 50px; text-align: center; }
+        .leaderboard-item .score-controls { display: flex; gap: 6px; }
+        .score-btn { width: 32px; height: 32px; border: none; border-radius: var(--radius-sm); cursor: pointer; font-weight: 700; font-size: 0.9rem; transition: var(--transition); }
+
+        /* Help Modal */
+        .help-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .help-modal.active { display: flex; }
+        .help-modal-content { background: var(--bg-card); border-radius: var(--radius-xl); max-width: 800px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+        .help-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 28px; border-bottom: 1px solid var(--border); }
+        .help-modal-header h2 { font-size: 1.3rem; font-weight: 700; color: var(--primary-light); }
+        .help-modal-close { width: 36px; height: 36px; border: none; background: var(--bg-hover); color: var(--text-secondary); border-radius: var(--radius-md); cursor: pointer; font-size: 1.1rem; transition: var(--transition); }
+        .help-modal-close:hover { background: var(--danger); color: white; }
+        .help-modal-body { padding: 28px; overflow-y: auto; flex: 1; }
+        .help-modal-body::-webkit-scrollbar { width: 8px; }
+        .help-modal-body::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 4px; }
+        .help-modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .help-section { margin-bottom: 28px; }
+        .help-section:last-child { margin-bottom: 0; }
+        .help-section h3 { font-size: 1.1rem; font-weight: 700; color: var(--primary-light); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+        .help-section p { color: var(--text-secondary); margin-bottom: 10px; line-height: 1.7; }
+        .help-subsection { margin-bottom: 16px; }
+        .help-subsection h4 { font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+        .help-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.9rem; }
+        .help-table th, .help-table td { padding: 10px 14px; border: 1px solid var(--border); text-align: left; }
+        .help-table th { background: var(--bg-hover); color: var(--primary-light); font-weight: 600; }
+        .help-table td { color: var(--text-secondary); }
+        .help-table tr:hover td { background: rgba(6, 182, 212, 0.05); }
+        .help-code { background: var(--bg-dark); padding: 14px 18px; border-radius: var(--radius-md); font-family: monospace; font-size: 0.85rem; color: var(--text-primary); margin: 10px 0; white-space: pre-wrap; line-height: 1.6; border-left: 3px solid var(--primary); }
+        .help-tip { background: rgba(6, 182, 212, 0.1); border: 1px solid var(--primary); border-radius: var(--radius-md); padding: 12px 16px; margin: 12px 0; font-size: 0.9rem; color: var(--primary-light); }
+        .help-tip::before { content: '💡 '; }
+        .help-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+        .help-nav-btn { padding: 8px 16px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-secondary); font-size: 0.85rem; cursor: pointer; transition: var(--transition); }
+        .help-nav-btn:hover, .help-nav-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+        .score-btn.plus { background: var(--success); color: white; }
+        .score-btn.plus:hover { background: var(--success-dark); }
+        .score-btn.minus { background: var(--danger); color: white; }
+        .score-btn.minus:hover { background: var(--danger-dark); }
+
+        /* Roll Call */
+        .rollcall-controls { display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+        .rollcall-mode-group { display: flex; gap: 6px; }
+        .rollcall-mode-btn { padding: 10px 18px; background: var(--bg-dark); border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); transition: var(--transition); }
+        .rollcall-mode-btn.active { background: rgba(249, 115, 22, 0.2); border-color: var(--secondary); color: var(--secondary); }
+        .rollcall-count-control { display: flex; align-items: center; gap: 10px; }
+        .rollcall-count-control label { font-weight: 500; color: var(--text-secondary); }
+        .rollcall-count-control input { width: 70px; text-align: center; }
+        .seat-input-inline { display: flex; align-items: center; gap: 8px; margin-left: 10px; }
+        .seat-input-inline label { font-weight: 500; color: var(--text-secondary); }
+        .seat-input-inline input { width: 60px; text-align: center; padding: 8px; }
+
+        .rollcall-display { background: var(--bg-dark); border: 3px solid var(--secondary); border-radius: var(--radius-xl); padding: 48px; text-align: center; min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .rollcall-result { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+        .rollcall-result .name-item { font-size: 3rem; font-weight: 800; color: var(--secondary); }
+        .rollcall-result .source { font-size: 0.9rem; color: var(--text-muted); margin-top: 8px; }
+        .rollcall-rolling { font-size: 2rem; font-weight: 600; color: var(--text-secondary); }
+        .rollcall-empty .icon { font-size: 4rem; margin-bottom: 12px; }
+        .rollcall-empty p { color: var(--text-muted); }
+        .rollcall-history { margin-top: 20px; }
+        .rollcall-history-title { font-weight: 600; color: var(--text-secondary); margin-bottom: 10px; }
+        .rollcall-history-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .rollcall-history-tag { padding: 6px 14px; background: rgba(16, 185, 129, 0.2); color: var(--success); border-radius: 20px; font-size: 0.85rem; font-weight: 500; }
+
+        /* Questions */
+        .question-section { margin-bottom: 24px; }
+        .subject-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; padding: 12px; background: var(--bg-dark); border-radius: var(--radius-md); }
+        .subject-chip { padding: 8px 16px; background: var(--bg-hover); border: 2px solid transparent; border-radius: 20px; cursor: pointer; font-size: 0.9rem; color: var(--text-secondary); transition: var(--transition); }
+        .subject-chip:hover { border-color: var(--accent); }
+        .subject-chip.active { background: rgba(168, 85, 247, 0.2); border-color: var(--accent); color: var(--accent-light); }
+        .subject-chip .remove { margin-left: 8px; opacity: 0.5; cursor: pointer; }
+        .subject-chip .remove:hover { opacity: 1; }
+        .add-subject-row { display: flex; gap: 10px; margin-bottom: 16px; }
+        .add-subject-row input { flex: 1; max-width: 200px; }
+
+        .tag-filter { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+        .tag-filter label { font-weight: 600; color: var(--text-secondary); }
+        .tag-chip { padding: 6px 12px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 16px; cursor: pointer; font-size: 0.85rem; color: var(--text-secondary); transition: var(--transition); }
+        .tag-chip:hover { border-color: var(--primary); }
+        .tag-chip.active { background: rgba(6, 182, 212, 0.2); border-color: var(--primary); color: var(--primary-light); }
+        .tag-chip .remove { margin-left: 4px; opacity: 0.5; cursor: pointer; }
+        .tag-chip .remove:hover { opacity: 1; }
+
+        .question-type-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .question-type-btn { padding: 8px 16px; background: var(--bg-dark); border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); transition: var(--transition); }
+        .question-type-btn.active { background: rgba(168, 85, 247, 0.2); border-color: var(--accent); color: var(--accent-light); }
+
+        .question-form { background: var(--bg-dark); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; }
+        .question-form-row { margin-bottom: 14px; }
+        .question-form-row:last-child { margin-bottom: 0; }
+        .question-form label { display: block; font-weight: 600; margin-bottom: 8px; }
+        .question-form input, .question-form textarea { width: 100%; }
+        .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+        .form-row .form-group { flex: 1; min-width: 150px; }
+        .form-row label { display: block; font-weight: 600; margin-bottom: 8px; }
+        .option-inputs { display: flex; flex-direction: column; gap: 8px; }
+        .option-input-row { display: flex; align-items: center; gap: 10px; }
+        .option-input-row .option-letter { width: 30px; height: 30px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; flex-shrink: 0; }
+        .option-input-row input { flex: 1; }
+
+        .batch-import { margin-top: 16px; }
+        .batch-import-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-secondary); font-weight: 500; margin-bottom: 12px; }
+        .batch-import-toggle:hover { color: var(--primary); }
+        .batch-import-area { display: none; }
+        .batch-import-area.show { display: block; }
+        .batch-import-area textarea { width: 100%; min-height: 200px; font-family: monospace; font-size: 0.9rem; }
+        .batch-format-hint { font-size: 0.85rem; color: var(--text-muted); margin-top: 8px; line-height: 1.6; }
+
+        .question-list { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+        .question-item { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+        .question-item:last-child { border-bottom: none; }
+        .question-item:hover { background: rgba(168, 85, 247, 0.05); }
+        .question-item .meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+        .question-type-badge { display: inline-block; padding: 4px 10px; background: rgba(168, 85, 247, 0.2); color: var(--accent-light); border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .question-tag-badge { display: inline-block; padding: 4px 8px; background: rgba(6, 182, 212, 0.2); color: var(--primary-light); border-radius: 10px; font-size: 0.7rem; }
+        .question-text { font-weight: 500; line-height: 1.5; }
+        .question-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .btn-fullscreen { background: var(--accent); color: white; }
+        .btn-fullscreen:hover { background: #9333EA; }
+
+        .random-quiz-section { background: var(--bg-dark); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; border: 2px solid var(--success); }
+        .random-quiz-title { font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; color: var(--success); }
+        .random-quiz-controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .random-quiz-controls select { min-width: 150px; }
+        .random-quiz-controls input { width: 80px; text-align: center; }
+
+        /* Fullscreen */
+        .fullscreen-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.95); z-index: 1000; display: none; align-items: center; justify-content: center; flex-direction: column; padding: 40px; }
+        .fullscreen-overlay.active { display: flex; }
+        .fullscreen-question { text-align: center; max-width: 800px; }
+        .fullscreen-question .type-badge { display: inline-block; padding: 8px 24px; background: var(--accent); color: white; border-radius: 24px; font-size: 1.1rem; font-weight: 600; margin-bottom: 32px; }
+        .fullscreen-question .question-text { font-size: 2.2rem; font-weight: 700; color: white; line-height: 1.4; margin-bottom: 40px; }
+        .fullscreen-question .option-item { color: white; font-size: 1.4rem; margin: 16px 0; padding: 14px 24px; background: rgba(255, 255, 255, 0.1); border-radius: var(--radius-md); text-align: left; }
+        .fullscreen-question .answer { font-size: 1.5rem; color: var(--success); background: rgba(16, 185, 129, 0.2); padding: 20px 40px; border-radius: var(--radius-lg); border: 2px solid var(--success); display: none; margin-top: 16px; }
+        .fullscreen-question .answer.show { display: inline-block; }
+        .fullscreen-question .show-answer-btn { padding: 14px 32px; background: var(--success); color: white; border: none; border-radius: var(--radius-md); font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
+        .fullscreen-question .show-answer-btn:hover { background: var(--success-dark); }
+        .fullscreen-question .quiz-counter { font-size: 1rem; color: var(--text-muted); margin-bottom: 16px; }
+        .fullscreen-close { position: absolute; top: 24px; right: 24px; padding: 10px 20px; background: rgba(255, 255, 255, 0.1); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; transition: var(--transition); }
+        .fullscreen-close:hover { background: rgba(255, 255, 255, 0.2); }
+        .fullscreen-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 100%; left: 0; }
+        .fullscreen-nav button { padding: 12px 28px; background: var(--primary); color: white; border: none; border-radius: var(--radius-md); cursor: pointer; font-size: 0.95rem; transition: var(--transition); }
+        .fullscreen-nav button:hover { background: var(--primary-dark); }
+        .fullscreen-nav .prev-btn { position: absolute; left: 24px; }
+        .fullscreen-nav .next-btn { position: absolute; right: 24px; }
+
+        /* Timer */
+        .timer-controls { display: flex; gap: 14px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+        .timer-mode-group { display: flex; gap: 6px; }
+        .timer-mode-btn { padding: 10px 18px; background: var(--bg-dark); border: 2px solid var(--border); border-radius: var(--radius-md); cursor: pointer; font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); transition: var(--transition); }
+        .timer-mode-btn.active { background: rgba(6, 182, 212, 0.2); border-color: var(--primary); color: var(--primary-light); }
+        .timer-presets { display: flex; gap: 8px; flex-wrap: wrap; }
+        .timer-preset-btn { padding: 8px 14px; background: rgba(6, 182, 212, 0.1); border: 1px solid var(--primary); color: var(--primary-light); border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: var(--transition); }
+        .timer-preset-btn:hover { background: var(--primary); color: var(--bg-dark); }
+        .timer-preset-btn.active { background: var(--primary); color: var(--bg-dark); }
+        .timer-controls input { width: 130px; }
+        .timer-display { background: var(--bg-dark); border: 3px solid var(--primary); border-radius: var(--radius-xl); padding: 56px 80px; text-align: center; margin-bottom: 20px; }
+        .timer-display .time { font-family: "JetBrains Mono", "SF Mono", monospace; font-size: 5.5rem; font-weight: 700; color: white; letter-spacing: 4px; }
+        .timer-display.warning .time { color: var(--secondary); }
+        .timer-display.danger .time { color: var(--danger); }
+        .timer-display .label { font-size: 1rem; color: var(--text-muted); margin-top: 10px; }
+        .timer-actions { display: flex; gap: 12px; justify-content: center; }
+
+        /* Toast */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 12px 20px; border-radius: var(--radius-md); color: white; font-weight: 600; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); display: flex; align-items: center; gap: 10px; animation: toastIn 0.2s ease; }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast.success { background: var(--success); }
+        .toast.error { background: var(--danger); }
+        .toast.info { background: var(--primary); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 1500; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-card); border-radius: var(--radius-xl); padding: 28px; max-width: 400px; width: 100%; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); }
+        .modal h3 { font-size: 1.2rem; margin-bottom: 12px; }
+        .modal p { color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6; }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .app-container { padding: 12px; }
+            .app-header { padding: 20px; border-radius: var(--radius-lg); }
+            .app-header h1 { font-size: 1.3rem; }
+            .main-content { padding: 16px; border-radius: var(--radius-lg); }
+            .rollcall-result .name-item { font-size: 2rem; }
+            .rollcall-display { padding: 36px 20px; }
+            .timer-display { padding: 36px 24px; }
+            .timer-display .time { font-size: 3.5rem; }
+            .fullscreen-question .question-text { font-size: 1.5rem; }
+            .groups-container { grid-template-columns: 1fr; }
+            .seat-input-inline { margin-left: 0; margin-top: 10px; width: 100%; }
+            .leaderboard-item { flex-wrap: wrap; }
+            .group-mode-row { flex-direction: column; align-items: flex-start; }
+        }
+
+        .flex { display: flex; }
+        .gap-8 { gap: 8px; }
+        .gap-12 { gap: 12px; }
+        .mt-16 { margin-top: 16px; }
+        .mt-24 { margin-top: 24px; }
+        .mb-16 { margin-bottom: 16px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>🎓 嘉游助手 - 课堂互动教学工具</h1>
+            <p>班级管理 · 随机点名 · 题目互动 · 课堂计时</p>
+            <button class="help-btn" onclick="openHelpModal()">📖 使用说明</button>
+        </header>
+
+        <section class="class-management">
+            <div class="class-input-row">
+                <input type="text" id="classNameInput" placeholder="班级名称，如：旅游1班" maxlength="20">
+                <button class="btn btn-primary" onclick="addClass()">+ 新增班级</button>
+            </div>
+            <div class="class-tabs" id="classTabs"></div>
+        </section>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="students">📋 学生名单</button>
+            <button class="tab-btn" data-tab="groups">👥 随机分组</button>
+            <button class="tab-btn" data-tab="rollcall">🎲 随机点名</button>
+            <button class="tab-btn" data-tab="questions">📝 题目互动</button>
+            <button class="tab-btn" data-tab="timer">⏱️ 课堂计时</button>
+        </nav>
+
+        <main class="main-content">
+            <!-- Students -->
+            <div class="tab-content active" id="tab-students">
+                <h2 class="section-title">📋 学生名单</h2>
+                <div class="card">
+                    <div class="student-count-badge" id="studentCountBadge">当前 0 名学生</div>
+                    <div class="student-list-header">
+                        <textarea id="studentImportArea" placeholder="批量导入学生（每行一个姓名）"></textarea>
+                    </div>
+                    <div class="flex gap-12">
+                        <button class="btn btn-secondary" onclick="importStudents()">导入学生</button>
+                        <button class="btn btn-danger" onclick="confirmClearStudents()">清空名单</button>
+                    </div>
+                </div>
+                <div class="card mt-24">
+                    <div class="student-list-title mb-16" id="studentListTitle">当前学生列表 — 暂无班级</div>
+                    <div class="student-list" id="studentList">
+                        <div class="empty-state"><div class="icon">📭</div><p>暂无学生，请先导入</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Groups -->
+            <div class="tab-content" id="tab-groups">
+                <h2 class="section-title">👥 随机分组</h2>
+                <div class="card">
+                    <div class="group-mode-row">
+                        <div class="group-mode-select">
+                            <button class="group-mode-btn active" data-mode="byCount" onclick="setGroupMode('byCount')">按每组人数</button>
+                            <button class="group-mode-btn" data-mode="byGroups" onclick="setGroupMode('byGroups')">按分组数量</button>
+                        </div>
+                        <button class="btn btn-secondary" onclick="autoGroupAll()">随机分组</button>
+                    </div>
+                    <div class="group-controls">
+                        <input type="number" id="groupValueInput" placeholder="每组人数" min="2" max="20" value="4">
+                        <button class="btn btn-primary" onclick="generateGroups()">生成分组</button>
+                        <button class="btn btn-ghost" onclick="clearGroups()">清空</button>
+                    </div>
+                    <div class="group-result-title">分组结果</div>
+                    <div class="groups-container" id="groupsContainer">
+                        <div class="empty-state"><div class="icon">👥</div><p>点击上方按钮生成分组</p></div>
+                    </div>
+                    <div class="leaderboard" id="leaderboard" style="display: none;">
+                        <div class="leaderboard-title">🏆 积分排行榜</div>
+                        <div class="leaderboard-list" id="leaderboardList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roll Call -->
+            <div class="tab-content" id="tab-rollcall">
+                <h2 class="section-title">🎲 随机点名</h2>
+                <div class="card">
+                    <div class="rollcall-controls">
+                        <div class="rollcall-mode-group">
+                            <button class="rollcall-mode-btn active" data-mode="list" onclick="setRollCallMode('list')">名单点名</button>
+                            <button class="rollcall-mode-btn" data-mode="seat" onclick="setRollCallMode('seat')">座位点名</button>
+                        </div>
+                        <div class="seat-input-inline" id="seatInputInline" style="display: none;">
+                            <label>排数:</label>
+                            <input type="number" id="seatRowsInput" placeholder="6" min="1" max="20" value="6">
+                            <label>列数:</label>
+                            <input type="number" id="seatColsInput" placeholder="8" min="1" max="20" value="8">
+                        </div>
+                        <div class="rollcall-count-control">
+                            <label>抽取人数：</label>
+                            <input type="number" id="rollcallCountInput" value="1" min="1" max="50">
+                        </div>
+                        <button class="btn btn-secondary" id="rollcallBtn" onclick="startRollCall()">🎯 开始点名</button>
+                        <button class="btn btn-ghost" onclick="resetRollCall()">重置</button>
+                    </div>
+                    <div class="rollcall-display" id="rollcallDisplay">
+                        <div class="rollcall-empty"><div class="icon">🎲</div><p>点击开始按钮进行随机点名</p></div>
+                    </div>
+                    <div class="rollcall-history" id="rollcallHistory" style="display: none;">
+                        <div class="rollcall-history-title">本次已点名：</div>
+                        <div class="rollcall-history-tags" id="rollcallHistoryTags"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions -->
+            <div class="tab-content" id="tab-questions">
+                <h2 class="section-title">📝 题目互动</h2>
+
+                <div class="card question-section">
+                    <div class="section-title" style="font-size: 1rem;">📚 学科管理</div>
+                    <div class="subject-bar" id="subjectBar"></div>
+                    <div class="add-subject-row">
+                        <input type="text" id="newSubjectInput" placeholder="输入新学科名称">
+                        <button class="btn btn-primary btn-sm" onclick="addSubject()">添加学科</button>
+                    </div>
+                </div>
+
+                <div class="card question-section">
+                    <div class="tag-filter" id="tagFilter"><label>标签筛选：</label></div>
+                </div>
+
+                <div class="random-quiz-section">
+                    <div class="random-quiz-title">🎯 随机出题</div>
+                    <div class="random-quiz-controls">
+                        <select id="quizSubjectSelect" onchange="renderTagFilter()"><option value="">全学科</option></select>
+                        <select id="quizTagSelect"><option value="">全部标签</option></select>
+                        <input type="number" id="quizCountInput" value="5" min="1" max="50" placeholder="题目数量">
+                        <button class="btn btn-success" onclick="startRandomQuiz()">开始随机出题</button>
+                    </div>
+                </div>
+
+                <div class="card question-section">
+                    <div class="question-type-tabs">
+                        <button class="question-type-btn active" data-type="single" onclick="setQuestionType('single')">单选题</button>
+                        <button class="question-type-btn" data-type="multi" onclick="setQuestionType('multi')">多选题</button>
+                        <button class="question-type-btn" data-type="judge" onclick="setQuestionType('judge')">判断题</button>
+                        <button class="question-type-btn" data-type="subjective" onclick="setQuestionType('subjective')">主观题</button>
+                    </div>
+
+                    <div class="question-form" id="questionForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>学科：</label>
+                                <select id="questionSubject"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>标签（逗号分隔）：</label>
+                                <input type="text" id="questionTags" placeholder="如：基础,高考">
+                            </div>
+                        </div>
+
+                        <div class="question-form-row mt-16">
+                            <label>题目内容：</label>
+                            <textarea id="questionContent" placeholder="请输入题目内容..."></textarea>
+                        </div>
+
+                        <div class="question-form-row" id="optionsRow">
+                            <label>选项：</label>
+                            <div class="option-inputs" id="optionInputs">
+                                <div class="option-input-row"><span class="option-letter">A</span><input type="text" placeholder="选项A内容"></div>
+                                <div class="option-input-row"><span class="option-letter">B</span><input type="text" placeholder="选项B内容"></div>
+                                <div class="option-input-row"><span class="option-letter">C</span><input type="text" placeholder="选项C内容"></div>
+                                <div class="option-input-row"><span class="option-letter">D</span><input type="text" placeholder="选项D内容"></div>
+                            </div>
+                        </div>
+
+                        <div class="question-form-row" id="answerRow">
+                            <label>正确答案：</label>
+                            <input type="text" id="questionAnswer" placeholder="如：A 或 AB（多选题）或 正确/错误">
+                        </div>
+
+                        <div class="question-form-row hidden" id="refAnswerRow">
+                            <label>参考答案描述：</label>
+                            <textarea id="questionRefAnswer" placeholder="请输入参考答案描述（评分参考）..." style="min-height: 60px;"></textarea>
+                        </div>
+
+                        <div class="mt-16">
+                            <button class="btn btn-primary" onclick="addQuestion()">添加题目</button>
+                            <button class="btn btn-ghost" onclick="toggleBatchImport()">批量导入</button>
+                        </div>
+
+                        <div class="batch-import-area mt-16" id="batchImportArea">
+                            <div style="background: var(--bg-hover); border-radius: var(--radius-md); padding: 16px; margin-bottom: 12px;">
+                                <div style="font-weight: 600; margin-bottom: 8px; color: var(--primary-light);">📋 批量导入格式</div>
+                                <textarea id="batchImportText" placeholder="【旅游管理】
+#基础 #考点
+1. 导游的基本职责是什么？
+A. 带团旅游
+B. 讲解服务
+C. 安全保障
+D. 以上都是
+答案：D
+
+---
+
+【电子商务】
+#实操
+1. 下列哪个是合法的支付方式？
+A. 支付宝
+B. 微信支付
+C. 现金
+D. 以上都是
+答案：D" style="min-height: 180px;"></textarea>
+                                <div class="batch-format-hint" style="margin-top: 12px; padding: 12px; background: var(--bg-dark); border-radius: var(--radius-sm);">
+                                    <div style="margin-bottom: 6px;"><strong>简化格式：</strong></div>
+                                    <div style="margin-bottom: 4px;">• <strong>【学科名】</strong> — 设置题目所属学科（可选，每个block开头）</div>
+                                    <div style="margin-bottom: 4px;">• <strong>#标签名</strong> — 给题目加标签（可选，多个#标签都可以）</div>
+                                    <div style="margin-bottom: 4px;">• <strong>题目内容</strong> — 直接写，不用加符号</div>
+                                    <div style="margin-bottom: 4px;">• <strong>A. B. C. D.</strong> — 选项每行一个</div>
+                                    <div>• <strong>答案：X</strong> — 写答案，正确/错误 为判断题</div>
+                                    <div style="margin-top: 8px; color: var(--primary-light);">✨ 提示：不同题目用空行或 --- 分隔即可</div>
+                                </div>
+                            </div>
+                            <div class="flex gap-12">
+                                <button class="btn btn-success" onclick="batchImport()">确认导入</button>
+                                <button class="btn btn-ghost" onclick="toggleBatchImport()">收起</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="question-list" id="questionList">
+                        <div class="empty-state"><div class="icon">📝</div><p>暂无题目，请先添加</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timer -->
+            <div class="tab-content" id="tab-timer">
+                <h2 class="section-title">⏱️ 课堂计时</h2>
+                <div class="card">
+                    <div class="timer-controls">
+                        <div class="timer-mode-group">
+                            <button class="timer-mode-btn active" data-mode="countdown" onclick="setTimerMode('countdown')">倒计时</button>
+                            <button class="timer-mode-btn" data-mode="countup" onclick="setTimerMode('countup')">正计时</button>
+                        </div>
+                        <div class="timer-presets" id="timerPresets">
+                            <button class="timer-preset-btn" onclick="setTimerPreset(30)">30秒</button>
+                            <button class="timer-preset-btn" onclick="setTimerPreset(60)">1分钟</button>
+                            <button class="timer-preset-btn" onclick="setTimerPreset(120)">2分钟</button>
+                            <button class="timer-preset-btn" onclick="setTimerPreset(300)" id="btn5min">5分钟</button>
+                            <button class="timer-preset-btn" onclick="setTimerPreset(600)">10分钟</button>
+                            <button class="timer-preset-btn" onclick="setTimerPreset(1800)">30分钟</button>
+                            <button class="timer-preset-btn" onclick="setTimerPreset(3600)" id="btn1hour">1小时</button>
+                        </div>
+                        <input type="number" id="timerCustomInput" placeholder="自定义秒数" min="1" max="7200">
+                    </div>
+                    <div class="timer-display" id="timerDisplay">
+                        <div class="time" id="timerTime">05:00</div>
+                        <div class="label" id="timerLabel">倒计时模式</div>
+                    </div>
+                    <div class="timer-actions">
+                        <button class="btn btn-secondary" id="timerStartBtn" onclick="startTimer()">▶ 开始</button>
+                        <button class="btn btn-ghost" onclick="resetTimer()">⟳ 重置</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <h3 id="confirmTitle">确认操作</h3>
+            <p id="confirmMessage">确定要执行此操作吗？</p>
+            <div class="modal-actions">
+                <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+                <button class="btn btn-danger" id="confirmBtn" onclick="confirmAction()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <button class="fullscreen-close" onclick="closeFullscreen()">按 ESC 或点击此处关闭</button>
+        <div class="fullscreen-question" id="fullscreenQuestion"></div>
+        <div class="fullscreen-nav">
+            <button class="prev-btn" onclick="prevQuestion()">◀ 上一题</button>
+            <button class="next-btn" onclick="nextQuestion()">下一题 ▶</button>
+        </div>
+    </div>
+
+    <div class="help-modal" id="helpModal">
+        <div class="help-modal-content">
+            <div class="help-modal-header">
+                <h2>📖 使用说明</h2>
+                <button class="help-modal-close" onclick="closeHelpModal()">✕</button>
+            </div>
+            <div class="help-modal-body" id="helpModalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'classroom_tool_v6';
+        const MAX_CLASSES = 10;
+
+        let appData = {
+            classes: [],
+            currentClassId: null,
+            subjects: ['会计事务', '电子商务', '电子技术', '服装', '动漫', '旅游', '计算机', '机电技术', '语文', '数学', '英语'],
+            questions: [],
+            groupMode: 'byCount',
+            rollCallMode: 'list',
+            questionType: 'single',
+            timerMode: 'countdown',
+            groupScores: {},
+            quizQuestions: [],
+            currentQuizIndex: 0
+        };
+
+        let timerInterval = null;
+        let timerSeconds = 300;
+        let timerRunning = false;
+        let rollCallInterval = null;
+        let rollCallHistory = [];
+        let currentFullscreenIndex = 0;
+        let answerShown = false;
+        let selectedSubject = '';
+        let selectedTags = [];
+
+        const GROUP_COLORS = ['#06B6D4', '#10B981', '#F97316', '#EF4444', '#A855F7', '#EC4899', '#06B6D4', '#84CC16'];
+
+        function loadData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    appData.classes = data.classes || [];
+                    appData.currentClassId = data.currentClassId;
+                    appData.subjects = data.subjects || appData.subjects;
+                    appData.questions = data.questions || [];
+                    appData.groupScores = data.groupScores || {};
+                }
+            } catch (e) {}
+            if (appData.classes.length === 0) {
+                appData.classes.push({ id: generateId(), name: '默认班级', students: [], groups: [] });
+                appData.currentClassId = appData.classes[0].id;
+            } else if (!appData.currentClassId) {
+                appData.currentClassId = appData.classes[0].id;
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    classes: appData.classes,
+                    currentClassId: appData.currentClassId,
+                    subjects: appData.subjects,
+                    questions: appData.questions,
+                    groupScores: appData.groupScores
+                }));
+            } catch (e) {}
+        }
+
+        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+        function getCurrentClass() { return appData.classes.find(c => c.id === appData.currentClassId); }
+
+        /* Class */
+        function renderClassTabs() {
+            const container = document.getElementById('classTabs');
+            container.innerHTML = '';
+            appData.classes.forEach(cls => {
+                const tab = document.createElement('div');
+                tab.className = `class-tab ${cls.id === appData.currentClassId ? 'active' : ''}`;
+                tab.onclick = () => switchClass(cls.id);
+                tab.innerHTML = `<span>${cls.name}</span><span class="student-count">(${cls.students.length}人)</span>`;
+                container.appendChild(tab);
+            });
+        }
+
+        function addClass() {
+            const input = document.getElementById('classNameInput');
+            const name = input.value.trim();
+            if (!name) { showToast('请输入班级名称', 'error'); return; }
+            if (appData.classes.length >= MAX_CLASSES) { showToast(`最多添加${MAX_CLASSES}个班级`, 'error'); return; }
+            appData.classes.push({ id: generateId(), name, students: [], groups: [] });
+            appData.currentClassId = appData.classes[appData.classes.length - 1].id;
+            input.value = '';
+            saveData();
+            renderClassTabs();
+            renderAll();
+            showToast(`班级「${name}」创建成功`, 'success');
+        }
+
+        function switchClass(classId) {
+            if (classId === appData.currentClassId) return;
+            appData.currentClassId = classId;
+            rollCallHistory = [];
+            saveData();
+            renderClassTabs();
+            renderAll();
+        }
+
+        /* Student */
+        function importStudents() {
+            const currentClass = getCurrentClass();
+            if (!currentClass) { showToast('请先选择班级', 'error'); return; }
+            const area = document.getElementById('studentImportArea');
+            const text = area.value.trim();
+            if (!text) { showToast('请输入学生姓名', 'error'); return; }
+            const names = text.split('\n').map(n => n.trim()).filter(n => n.length > 0).filter((n, i, arr) => arr.indexOf(n) === i);
+            if (names.length === 0) { showToast('未识别到有效姓名', 'error'); return; }
+            currentClass.students = [...currentClass.students, ...names];
+            area.value = '';
+            saveData();
+            renderStudentList();
+            renderClassTabs();
+            showToast(`成功导入 ${names.length} 名学生`, 'success');
+        }
+
+        function removeStudent(index) {
+            const currentClass = getCurrentClass();
+            if (!currentClass) return;
+            currentClass.students.splice(index, 1);
+            saveData();
+            renderStudentList();
+            renderClassTabs();
+        }
+
+        function confirmClearStudents() {
+            const currentClass = getCurrentClass();
+            if (!currentClass || currentClass.students.length === 0) { showToast('暂无学生可清空', 'info'); return; }
+            showConfirm('清空学生名单', `确定要清空「${currentClass.name}」的全部 ${currentClass.students.length} 名学生吗？`, () => {
+                currentClass.students = [];
+                saveData();
+                renderStudentList();
+                renderClassTabs();
+                showToast('学生名单已清空', 'success');
+            });
+        }
+
+        function renderStudentList() {
+            const currentClass = getCurrentClass();
+            const listContainer = document.getElementById('studentList');
+            const title = document.getElementById('studentListTitle');
+            const badge = document.getElementById('studentCountBadge');
+
+            if (!currentClass) {
+                title.textContent = '当前学生列表 — 暂无班级';
+                badge.textContent = '当前 0 名学生';
+                listContainer.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>暂无班级</p></div>';
+                return;
+            }
+
+            title.textContent = `当前学生列表 — ${currentClass.name}`;
+            badge.textContent = `当前 ${currentClass.students.length} 名学生`;
+
+            if (currentClass.students.length === 0) {
+                listContainer.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>暂无学生，请先导入</p></div>';
+                return;
+            }
+
+            listContainer.innerHTML = currentClass.students.map((name, index) => `
+                <div class="student-item">
+                    <span class="序号">${index + 1}.</span>
+                    <span class="姓名">${escapeHtml(name)}</span>
+                    <button class="btn-icon 删除" onclick="removeStudent(${index})">✕</button>
+                </div>
+            `).join('');
+        }
+
+        /* Groups */
+        function setGroupMode(mode) {
+            appData.groupMode = mode;
+            document.querySelectorAll('.group-mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+            document.getElementById('groupValueInput').placeholder = mode === 'byCount' ? '每组人数' : '分组数量';
+        }
+
+        function generateGroups() {
+            const currentClass = getCurrentClass();
+            if (!currentClass) { showToast('请先选择班级', 'error'); return; }
+            if (currentClass.students.length < 2) { showToast('学生人数不足（至少需要2人）', 'error'); return; }
+
+            const value = parseInt(document.getElementById('groupValueInput').value) || 4;
+            const students = [...currentClass.students];
+            for (let i = students.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [students[i], students[j]] = [students[j], students[i]];
+            }
+
+            let groups = [];
+            if (appData.groupMode === 'byCount') {
+                const groupSize = Math.max(2, Math.min(value, students.length));
+                for (let i = 0; i < students.length; i += groupSize) groups.push(students.slice(i, i + groupSize));
+            } else {
+                const groupCount = Math.max(2, Math.min(value, students.length));
+                const baseSize = Math.floor(students.length / groupCount);
+                let remainder = students.length % groupCount;
+                let index = 0;
+                for (let i = 0; i < groupCount; i++) {
+                    const size = baseSize + (i < remainder ? 1 : 0);
+                    groups.push(students.slice(index, index + size));
+                    index += size;
+                }
+            }
+
+            currentClass.groups = groups;
+            initGroupScores(groups);
+            saveData();
+            renderGroups();
+            renderLeaderboard();
+            showToast(`已生成 ${groups.length} 个小组`, 'success');
+        }
+
+        function autoGroupAll() {
+            const currentClass = getCurrentClass();
+            if (!currentClass) { showToast('请先选择班级', 'error'); return; }
+            if (currentClass.students.length < 2) { showToast('学生人数不足（至少需要2人）', 'error'); return; }
+
+            const students = [...currentClass.students];
+            for (let i = students.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [students[i], students[j]] = [students[j], students[i]];
+            }
+
+            let groupCount;
+            if (students.length <= 10) groupCount = 2;
+            else if (students.length <= 20) groupCount = 4;
+            else if (students.length <= 30) groupCount = 5;
+            else if (students.length <= 40) groupCount = 6;
+            else groupCount = 8;
+
+            const baseSize = Math.floor(students.length / groupCount);
+            let remainder = students.length % groupCount;
+            let index = 0;
+            const groups = [];
+            for (let i = 0; i < groupCount; i++) {
+                const size = baseSize + (i < remainder ? 1 : 0);
+                groups.push(students.slice(index, index + size));
+                index += size;
+            }
+
+            currentClass.groups = groups;
+            initGroupScores(groups);
+            document.getElementById('groupValueInput').value = groupCount;
+            setGroupMode('byGroups');
+            saveData();
+            renderGroups();
+            renderLeaderboard();
+            showToast(`已将 ${students.length} 名学生分成 ${groups.length} 组`, 'success');
+        }
+
+        function initGroupScores(groups) {
+            const currentClass = getCurrentClass();
+            if (!currentClass) return;
+            groups.forEach((group, index) => {
+                const key = `${currentClass.id}-${index}`;
+                if (appData.groupScores[key] === undefined) appData.groupScores[key] = 0;
+            });
+            Object.keys(appData.groupScores).forEach(key => {
+                if (!key.startsWith(currentClass.id)) return;
+                const groupIndex = parseInt(key.split('-')[1]);
+                if (groupIndex >= groups.length) delete appData.groupScores[key];
+            });
+        }
+
+        function updateGroupScore(groupIndex, delta) {
+            const currentClass = getCurrentClass();
+            if (!currentClass || !currentClass.groups[groupIndex]) return;
+            const key = `${currentClass.id}-${groupIndex}`;
+            appData.groupScores[key] = (appData.groupScores[key] || 0) + delta;
+            if (appData.groupScores[key] < 0) appData.groupScores[key] = 0;
+            saveData();
+            renderLeaderboard();
+        }
+
+        function renderLeaderboard() {
+            const currentClass = getCurrentClass();
+            const container = document.getElementById('leaderboard');
+            const listContainer = document.getElementById('leaderboardList');
+
+            if (!currentClass || currentClass.groups.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            const scores = currentClass.groups.map((group, index) => {
+                const key = `${currentClass.id}-${index}`;
+                return { index, score: appData.groupScores[key] || 0, name: `第 ${index + 1} 组`, color: GROUP_COLORS[index % GROUP_COLORS.length] };
+            });
+            scores.sort((a, b) => b.score - a.score);
+
+            listContainer.innerHTML = scores.map((item, rank) => {
+                const rankClass = rank < 3 ? `rank-${rank + 1}` : '';
+                return `
+                    <div class="leaderboard-item ${rankClass}">
+                        <span class="rank">${rank + 1}</span>
+                        <span class="group-name">${item.name}</span>
+                        <span class="score">${item.score}分</span>
+                        <div class="score-controls">
+                            <button class="score-btn minus" onclick="updateGroupScore(${item.index}, -1)">-1</button>
+                            <button class="score-btn plus" onclick="updateGroupScore(${item.index}, 1)">+1</button>
+                            <button class="score-btn plus" onclick="updateGroupScore(${item.index}, 5)">+5</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearGroups() {
+            const currentClass = getCurrentClass();
+            if (!currentClass) return;
+            currentClass.groups = [];
+            saveData();
+            renderGroups();
+            renderLeaderboard();
+            showToast('分组已清空', 'info');
+        }
+
+        function renderGroups() {
+            const currentClass = getCurrentClass();
+            const container = document.getElementById('groupsContainer');
+
+            if (!currentClass || currentClass.groups.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">👥</div><p>点击上方按钮生成分组</p></div>';
+                return;
+            }
+
+            container.innerHTML = currentClass.groups.map((group, index) => `
+                <div class="group-card">
+                    <div class="group-header">
+                        <div class="group-header-left">
+                            <span class="group-color" style="background: ${GROUP_COLORS[index % GROUP_COLORS.length]}"></span>
+                            第 ${index + 1} 组（${group.length}人）
+                        </div>
+                        <span style="color: var(--success); font-size: 0.9rem;">${appData.groupScores[`${currentClass.id}-${index}`] || 0}分</span>
+                    </div>
+                    ${group.map(name => `<div class="student-name">${escapeHtml(name)}</div>`).join('')}
+                </div>
+            `).join('');
+        }
+
+        /* Roll Call - Fixed Animation Timing */
+        function setRollCallMode(mode) {
+            appData.rollCallMode = mode;
+            document.querySelectorAll('.rollcall-mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+            document.getElementById('seatInputInline').style.display = mode === 'seat' ? 'flex' : 'none';
+            resetRollCall();
+        }
+
+        function startRollCall() {
+            const currentClass = getCurrentClass();
+            if (!currentClass) { showToast('请先选择班级', 'error'); return; }
+
+            const count = parseInt(document.getElementById('rollcallCountInput').value) || 1;
+            let source = [];
+
+            if (appData.rollCallMode === 'list') {
+                source = currentClass.students.filter(s => !rollCallHistory.includes(s));
+            } else {
+                const rows = parseInt(document.getElementById('seatRowsInput').value) || 6;
+                const cols = parseInt(document.getElementById('seatColsInput').value) || 8;
+                for (let r = 1; r <= rows; r++) {
+                    for (let c = 1; c <= cols; c++) {
+                        const key = `${r}-${c}`;
+                        if (!rollCallHistory.includes(key)) source.push(key);
+                    }
+                }
+            }
+
+            if (source.length === 0) { showToast('没有可点名的对象了', 'info'); return; }
+
+            const actualCount = Math.min(count, source.length);
+
+            if (actualCount === 1) {
+                performSingleRollCall(source);
+            } else {
+                performMultiRollCall(source, actualCount);
+            }
+        }
+
+        function performSingleRollCall(source) {
+            const display = document.getElementById('rollcallDisplay');
+            const btn = document.getElementById('rollcallBtn');
+            btn.disabled = true;
+
+            let iterations = 0;
+            const totalIterations = 25;
+            const baseInterval = 60;
+
+            rollCallInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * source.length);
+                const item = source[randomIndex];
+
+                if (appData.rollCallMode === 'seat') {
+                    const [r, c] = item.split('-');
+                    display.innerHTML = `<div class="rollcall-rolling">第${r}排 ${c}号</div>`;
+                } else {
+                    display.innerHTML = `<div class="rollcall-rolling">${escapeHtml(item)}</div>`;
+                }
+
+                iterations++;
+
+                if (iterations >= totalIterations) {
+                    clearInterval(rollCallInterval);
+
+                    const finalIndex = Math.floor(Math.random() * source.length);
+                    const finalItem = source[finalIndex];
+
+                    if (appData.rollCallMode === 'seat') {
+                        const [r, c] = finalItem.split('-');
+                        display.innerHTML = `<div class="rollcall-result"><div class="name-item">第${r}排 ${c}号</div><div class="source">座位点名</div></div>`;
+                        rollCallHistory.push(finalItem);
+                    } else {
+                        display.innerHTML = `<div class="rollcall-result"><div class="name-item">${escapeHtml(finalItem)}</div><div class="source">名单点名</div></div>`;
+                        rollCallHistory.push(finalItem);
+                    }
+
+                    updateRollCallHistory();
+                    btn.disabled = false;
+                    saveData();
+                }
+            }, baseInterval);
+        }
+
+        function performMultiRollCall(source, count) {
+            const display = document.getElementById('rollcallDisplay');
+            const btn = document.getElementById('rollcallBtn');
+            btn.disabled = true;
+
+            // Pre-select results
+            const shuffled = [...source];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            const results = shuffled.slice(0, count);
+
+            // Rolling animation
+            let rollIndex = 0;
+            const rollIterations = 20;
+            const rollInterval = setInterval(() => {
+                const displayItems = results.map((item, idx) => {
+                    // Cycle through different items for each slot
+                    const cycleIdx = (rollIndex + idx) % source.length;
+                    const cycleItem = source[cycleIdx];
+                    if (appData.rollCallMode === 'seat') {
+                        const [r, c] = cycleItem.split('-');
+                        return `<div class="name-item" style="opacity: ${idx < (rollIndex % 3) ? 1 : 0.5}">第${r}排 ${c}号</div>`;
+                    } else {
+                        return `<div class="name-item" style="opacity: ${idx < (rollIndex % 3) ? 1 : 0.5}">${escapeHtml(cycleItem)}</div>`;
+                    }
+                }).join('');
+                display.innerHTML = `<div class="rollcall-result">${displayItems}</div>`;
+                rollIndex++;
+            }, 80);
+
+            setTimeout(() => {
+                clearInterval(rollInterval);
+
+                // Final results
+                const resultHtml = results.map(item => {
+                    if (appData.rollCallMode === 'seat') {
+                        const [r, c] = item.split('-');
+                        return `<div class="name-item">第${r}排 ${c}号</div>`;
+                    } else {
+                        return `<div class="name-item">${escapeHtml(item)}</div>`;
+                    }
+                }).join('');
+                display.innerHTML = `<div class="rollcall-result">${resultHtml}</div>`;
+
+                results.forEach(r => { if (!rollCallHistory.includes(r)) rollCallHistory.push(r); });
+                updateRollCallHistory();
+                btn.disabled = false;
+                saveData();
+            }, rollIterations * 80);
+        }
+
+        function resetRollCall() {
+            if (rollCallInterval) clearInterval(rollCallInterval);
+            rollCallHistory = [];
+            const display = document.getElementById('rollcallDisplay');
+            display.innerHTML = '<div class="rollcall-empty"><div class="icon">🎲</div><p>点击开始按钮进行随机点名</p></div>';
+            updateRollCallHistory();
+            saveData();
+        }
+
+        function updateRollCallHistory() {
+            const container = document.getElementById('rollcallHistory');
+            const tags = document.getElementById('rollcallHistoryTags');
+            if (rollCallHistory.length === 0) { container.style.display = 'none'; return; }
+            container.style.display = 'block';
+            if (appData.rollCallMode === 'seat') {
+                tags.innerHTML = rollCallHistory.map(key => { const [r, c] = key.split('-'); return `<span class="rollcall-history-tag">第${r}排 ${c}号</span>`; }).join('');
+            } else {
+                tags.innerHTML = rollCallHistory.map(name => `<span class="rollcall-history-tag">${escapeHtml(name)}</span>`).join('');
+            }
+        }
+
+        /* Subject */
+        function renderSubjectBar() {
+            const bar = document.getElementById('subjectBar');
+            bar.innerHTML = appData.subjects.map(s => `
+                <div class="subject-chip ${selectedSubject === s ? 'active' : ''}" onclick="selectSubject('${escapeHtml(s)}')">
+                    ${escapeHtml(s)}
+                    <span class="remove" onclick="event.stopPropagation(); removeSubject('${escapeHtml(s)}')">✕</span>
+                </div>
+            `).join('');
+        }
+
+        function selectSubject(subject) {
+            selectedSubject = selectedSubject === subject ? '' : subject;
+            renderSubjectBar();
+            renderTagFilter();
+            renderQuestionList();
+        }
+
+        function addSubject() {
+            const input = document.getElementById('newSubjectInput');
+            const name = input.value.trim();
+            if (!name) { showToast('请输入学科名称', 'error'); return; }
+            if (appData.subjects.includes(name)) { showToast('该学科已存在', 'error'); return; }
+            appData.subjects.push(name);
+            input.value = '';
+            saveData();
+            renderSubjectBar();
+            updateSubjectSelects();
+            showToast(`学科「${name}」添加成功`, 'success');
+        }
+
+        function removeSubject(name) {
+            appData.subjects = appData.subjects.filter(s => s !== name);
+            if (selectedSubject === name) selectedSubject = '';
+            saveData();
+            renderSubjectBar();
+            updateSubjectSelects();
+            showToast(`学科「${name}」已删除`, 'info');
+        }
+
+        function updateSubjectSelects() {
+            ['questionSubject', 'quizSubjectSelect'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                sel.innerHTML = '<option value="">选择学科</option>' + appData.subjects.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+            });
+        }
+
+        /* Tag */
+        function getAllTags() {
+            const currentClass = getCurrentClass();
+            if (!currentClass) return [];
+            const tags = new Set();
+            appData.questions.forEach(q => { (q.tags || []).forEach(t => tags.add(t)); });
+            return Array.from(tags);
+        }
+
+        function renderTagFilter() {
+            const container = document.getElementById('tagFilter');
+            const currentClass = getCurrentClass();
+            let tags = getAllTags();
+            if (selectedSubject && currentClass) {
+                tags = tags.filter(tag => appData.questions.some(q => (q.tags || []).includes(tag) && q.subject === selectedSubject));
+            }
+
+            container.innerHTML = '<label>标签筛选：</label>' + tags.map(t => `<div class="tag-chip ${selectedTags.includes(t) ? 'active' : ''}" onclick="toggleTag('${escapeHtml(t)}')">${escapeHtml(t)}</div>`).join('');
+
+            const quizTagSelect = document.getElementById('quizTagSelect');
+            if (quizTagSelect) {
+                quizTagSelect.innerHTML = '<option value="">全部标签</option>' + tags.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+            }
+        }
+
+        function toggleTag(tag) {
+            if (selectedTags.includes(tag)) selectedTags = selectedTags.filter(t => t !== tag);
+            else selectedTags.push(tag);
+            renderTagFilter();
+            renderQuestionList();
+        }
+
+        /* Questions */
+        function setQuestionType(type) {
+            appData.questionType = type;
+            document.querySelectorAll('.question-type-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.type === type));
+            const optionsRow = document.getElementById('optionsRow');
+            const answerRow = document.getElementById('answerRow');
+            const refAnswerRow = document.getElementById('refAnswerRow');
+            const answerInput = document.getElementById('questionAnswer');
+
+            if (type === 'single' || type === 'multi') {
+                optionsRow.classList.remove('hidden');
+                answerRow.classList.remove('hidden');
+                refAnswerRow.classList.add('hidden');
+                answerInput.placeholder = type === 'multi' ? '如：AB（多选题）' : '如：A';
+            } else if (type === 'judge') {
+                optionsRow.classList.add('hidden');
+                answerRow.classList.remove('hidden');
+                refAnswerRow.classList.add('hidden');
+                answerInput.placeholder = '正确 / 错误';
+            } else {
+                optionsRow.classList.add('hidden');
+                answerRow.classList.add('hidden');
+                refAnswerRow.classList.remove('hidden');
+            }
+        }
+
+        function addQuestion() {
+            const currentClass = getCurrentClass();
+            if (!currentClass) { showToast('请先选择班级', 'error'); return; }
+            const subject = document.getElementById('questionSubject').value;
+            const tagsInput = document.getElementById('questionTags').value;
+            const tags = tagsInput.split(/[,，]/).map(t => t.trim()).filter(t => t);
+            const content = document.getElementById('questionContent').value.trim();
+            if (!content) { showToast('请输入题目内容', 'error'); return; }
+
+            let answer = '', options = null, refAnswer = '';
+            if (appData.questionType === 'single' || appData.questionType === 'multi') {
+                const optionInputs = document.querySelectorAll('#optionInputs input');
+                options = Array.from(optionInputs).map(i => i.value.trim());
+                answer = document.getElementById('questionAnswer').value.trim().toUpperCase();
+                if (!answer) { showToast('请输入正确答案', 'error'); return; }
+            } else if (appData.questionType === 'judge') {
+                answer = document.getElementById('questionAnswer').value.trim();
+                if (!answer) { showToast('请输入正确答案', 'error'); return; }
+            } else {
+                refAnswer = document.getElementById('questionRefAnswer').value.trim();
+            }
+
+            const question = { id: generateId(), type: appData.questionType, subject, tags, content, options, answer, refAnswer };
+            appData.questions.push(question);
+            clearQuestionForm();
+            saveData();
+            renderTagFilter();
+            renderQuestionList();
+            showToast('题目添加成功', 'success');
+        }
+
+        function clearQuestionForm() {
+            document.getElementById('questionSubject').value = '';
+            document.getElementById('questionTags').value = '';
+            document.getElementById('questionContent').value = '';
+            document.querySelectorAll('#optionInputs input').forEach(i => i.value = '');
+            document.getElementById('questionAnswer').value = '';
+            document.getElementById('questionRefAnswer').value = '';
+        }
+
+        function deleteQuestion(index) {
+            const currentClass = getCurrentClass();
+            if (!currentClass) return;
+            appData.questions.splice(index, 1);
+            saveData();
+            renderTagFilter();
+            renderQuestionList();
+            showToast('题目已删除', 'info');
+        }
+
+        function renderQuestionList() {
+            const currentClass = getCurrentClass();
+            const container = document.getElementById('questionList');
+            if (!currentClass || appData.questions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>暂无题目，请先添加</p></div>';
+                return;
+            }
+
+            let questions = appData.questions;
+            if (selectedSubject) questions = questions.filter(q => q.subject === selectedSubject);
+            if (selectedTags.length > 0) questions = questions.filter(q => selectedTags.every(tag => (q.tags || []).includes(tag)));
+            if (questions.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><p>没有符合条件的题目</p></div>';
+                return;
+            }
+
+            const typeNames = { single: '单选', multi: '多选', judge: '判断', subjective: '主观' };
+            container.innerHTML = questions.map((q, index) => {
+                const actualIndex = appData.questions.indexOf(q);
+                return `
+                    <div class="question-item">
+                        <div class="question-content">
+                            <div class="meta">
+                                <span class="question-type-badge">${typeNames[q.type]}</span>
+                                ${q.subject ? `<span class="question-tag-badge">${escapeHtml(q.subject)}</span>` : ''}
+                                ${(q.tags || []).map(t => `<span class="question-tag-badge">${escapeHtml(t)}</span>`).join('')}
+                            </div>
+                            <div class="question-text">${escapeHtml(q.content)}</div>
+                        </div>
+                        <div class="question-actions">
+                            <button class="btn btn-sm btn-fullscreen" onclick="showFullscreen(${actualIndex})">答题</button>
+                            <button class="btn-icon" onclick="deleteQuestion(${actualIndex})">✕</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /* Batch Import */
+        function toggleBatchImport() { document.getElementById('batchImportArea').classList.toggle('show'); }
+
+        function batchImport() {
+            const currentClass = getCurrentClass();
+            if (!currentClass) { showToast('请先选择班级', 'error'); return; }
+            const text = document.getElementById('batchImportText').value.trim();
+            if (!text) { showToast('请输入导入内容', 'error'); return; }
+            const questions = parseBatchText(text);
+            if (questions.length === 0) { showToast('未识别到有效题目', 'error'); return; }
+            appData.questions.push(...questions);
+            document.getElementById('batchImportText').value = '';
+            toggleBatchImport();
+            saveData();
+            renderTagFilter();
+            renderQuestionList();
+            showToast(`成功导入 ${questions.length} 道题目`, 'success');
+        }
+
+        function parseBatchText(text) {
+            const questions = [];
+
+            // Split by 【 to get blocks - each 【 starts a new question
+            const blocks = text.split('【').filter(b => b.trim());
+
+            blocks.forEach(block => {
+                if (!block.trim()) return;
+
+                // Extract subject from the first part (before first newline or end)
+                let subject = '';
+                const subjectEnd = block.indexOf('】');
+                if (subjectEnd > 0) {
+                    subject = block.substring(0, subjectEnd).trim();
+                }
+
+                // Remaining content after 【学科】
+                let content = block.substring(subjectEnd + 1);
+
+                // Extract all #tags and clean them (remove spaces)
+                const tags = [];
+                content = content.replace(/#([^\s#\n【】]+)/g, (match, tag) => {
+                    tags.push(tag.trim());
+                    return '';
+                });
+
+                // Clean up extra whitespace
+                content = content.replace(/\n+/g, '\n').trim();
+
+                // Split into lines for processing
+                const lines = content.split('\n').filter(l => l.trim());
+
+                let questionContent = '', options = [], answer = '', type = 'single';
+
+                // First non-empty line that's not an option is the question content
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (!trimmed) continue;
+
+                    // Check if it's an option line
+                    const optionMatch = trimmed.match(/^([A-F])\.\s*(.+)/);
+                    if (optionMatch) {
+                        options.push(optionMatch[2]);
+                        continue;
+                    }
+
+                    // Check if it's an answer line
+                    const answerMatch = trimmed.match(/^答案[：:]\s*(.+)/i);
+                    if (answerMatch) {
+                        answer = answerMatch[1].trim().toUpperCase();
+                        continue;
+                    }
+
+                    // Otherwise it's the question content (take first valid one)
+                    if (!questionContent && trimmed) {
+                        questionContent = trimmed.replace(/^\d+[.、]\s*/, '');
+                    }
+                }
+
+                // Determine type based on answer
+                if (options.length === 0 && (answer === '正确' || answer === '错误' || answer === '对' || answer === '错' || answer === 'TRUE' || answer === 'FALSE')) {
+                    type = 'judge';
+                } else if (options.length === 0) {
+                    type = 'subjective';
+                } else if (answer.length > 1 && /^[A-Z]+$/i.test(answer)) {
+                    type = 'multi';
+                }
+
+                if (questionContent) {
+                    questions.push({
+                        id: generateId(),
+                        type,
+                        subject,
+                        tags,
+                        content: questionContent,
+                        options: options.length > 0 ? options : null,
+                        answer,
+                        refAnswer: type === 'subjective' ? answer : ''
+                    });
+                }
+            });
+
+            return questions;
+        }
+
+        /* Random Quiz */
+        function startRandomQuiz() {
+            const currentClass = getCurrentClass();
+            if (!currentClass || appData.questions.length === 0) { showToast('暂无题目', 'error'); return; }
+            const subjectFilter = document.getElementById('quizSubjectSelect').value;
+            const tagFilter = document.getElementById('quizTagSelect').value;
+            const count = parseInt(document.getElementById('quizCountInput').value) || 5;
+
+            let pool = [...appData.questions];
+            if (subjectFilter) pool = pool.filter(q => q.subject === subjectFilter);
+            if (tagFilter) pool = pool.filter(q => (q.tags || []).includes(tagFilter));
+            if (pool.length === 0) { showToast('没有符合条件的题目', 'error'); return; }
+
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            appData.quizQuestions = pool.slice(0, Math.min(count, pool.length));
+            appData.currentQuizIndex = 0;
+            if (appData.quizQuestions.length > 0) showFullscreenQuestion(appData.quizQuestions[0], 0);
+        }
+
+        /* Fullscreen */
+        function showFullscreen(index) {
+            const currentClass = getCurrentClass();
+            if (!currentClass || !appData.questions[index]) return;
+            appData.quizQuestions = [appData.questions[index]];
+            appData.currentQuizIndex = 0;
+            showFullscreenQuestion(appData.questions[index], 0);
+        }
+
+        function showFullscreenQuestion(q, index) {
+            currentFullscreenIndex = index;
+            answerShown = false;
+            const typeNames = { single: '单选题', multi: '多选题', judge: '判断题', subjective: '主观题' };
+            const total = appData.quizQuestions.length;
+            const counterHtml = total > 1 ? `<div class="quiz-counter">第 ${index + 1} / ${total} 题</div>` : '';
+
+            let html = `<div class="type-badge">${typeNames[q.type]}</div>${counterHtml}<div class="question-text">${escapeHtml(q.content)}</div>`;
+
+            if (q.options) {
+                html += '<div style="text-align: left; max-width: 600px; margin: 0 auto 30px;">';
+                const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+                q.options.forEach((opt, i) => { if (opt) html += `<div class="option-item">${letters[i]}. ${escapeHtml(opt)}</div>`; });
+                html += '</div>';
+            }
+
+            if (q.answer || q.refAnswer) {
+                html += `<button class="show-answer-btn" onclick="toggleAnswer()">显示答案</button>`;
+                if (q.type === 'subjective') html += `<div class="answer" id="answerDisplay">参考答案：${escapeHtml(q.refAnswer || '无')}</div>`;
+                else html += `<div class="answer" id="answerDisplay">正确答案：${escapeHtml(q.answer)}</div>`;
+            }
+
+            document.getElementById('fullscreenQuestion').innerHTML = html;
+            document.getElementById('fullscreenOverlay').classList.add('active');
+        }
+
+        function toggleAnswer() {
+            const answerEl = document.getElementById('answerDisplay');
+            const btnEl = document.querySelector('.show-answer-btn');
+            if (answerEl) { answerShown = !answerShown; answerEl.classList.toggle('show', answerShown); }
+            if (btnEl) btnEl.style.display = 'none';
+        }
+
+        function closeFullscreen() {
+            document.getElementById('fullscreenOverlay').classList.remove('active');
+            answerShown = false;
+            appData.quizQuestions = [];
+        }
+
+        function prevQuestion() {
+            if (appData.currentQuizIndex > 0) { appData.currentQuizIndex--; showFullscreenQuestion(appData.quizQuestions[appData.currentQuizIndex], appData.currentQuizIndex); }
+        }
+
+        function nextQuestion() {
+            if (appData.currentQuizIndex < appData.quizQuestions.length - 1) { appData.currentQuizIndex++; showFullscreenQuestion(appData.quizQuestions[appData.currentQuizIndex], appData.currentQuizIndex); }
+        }
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeFullscreen(); });
+
+        /* Timer */
+        function setTimerMode(mode) {
+            appData.timerMode = mode;
+            document.querySelectorAll('.timer-mode-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.mode === mode));
+            const label = document.getElementById('timerLabel');
+            const presets = document.getElementById('timerPresets');
+            const customInput = document.getElementById('timerCustomInput');
+            if (mode === 'countdown') {
+                label.textContent = '倒计时模式';
+                presets.style.display = 'flex';
+                customInput.style.display = 'inline-block';
+            } else {
+                label.textContent = '正计时模式';
+                presets.style.display = 'none';
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
+            resetTimer();
+        }
+
+        function setTimerPreset(seconds) {
+            document.querySelectorAll('.timer-preset-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('timerCustomInput').value = seconds;
+            timerSeconds = seconds;
+            updateTimerDisplay();
+        }
+
+        function startTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                timerRunning = false;
+                document.getElementById('timerStartBtn').innerHTML = '▶ 开始';
+            } else {
+                if (appData.timerMode === 'countdown') {
+                    const custom = parseInt(document.getElementById('timerCustomInput').value);
+                    if (timerSeconds <= 0 && custom) timerSeconds = custom;
+                    if (timerSeconds <= 0) { showToast('请设置倒计时时间', 'error'); return; }
+                }
+                timerRunning = true;
+                document.getElementById('timerStartBtn').innerHTML = '⏸ 暂停';
+                timerInterval = setInterval(() => {
+                    if (appData.timerMode === 'countdown') {
+                        timerSeconds--;
+                        if (timerSeconds <= 0) {
+                            clearInterval(timerInterval);
+                            timerInterval = null;
+                            timerRunning = false;
+                            document.getElementById('timerStartBtn').innerHTML = '▶ 开始';
+                            showTimerAlert();
+                        }
+                    } else {
+                        timerSeconds++;
+                    }
+                    updateTimerDisplay();
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+            timerRunning = false;
+            timerSeconds = appData.timerMode === 'countdown' ? 300 : 0;
+            const custom = parseInt(document.getElementById('timerCustomInput').value);
+            if (appData.timerMode === 'countdown' && custom) timerSeconds = custom;
+            document.getElementById('timerStartBtn').innerHTML = '▶ 开始';
+            document.querySelectorAll('.timer-preset-btn').forEach(btn => btn.classList.remove('active'));
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timerDisplay');
+            const timeEl = document.getElementById('timerTime');
+            const mins = Math.floor(Math.abs(timerSeconds) / 60);
+            const secs = Math.abs(timerSeconds) % 60;
+            const prefix = timerSeconds < 0 ? '-' : '';
+            timeEl.textContent = `${prefix}${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            display.classList.remove('warning', 'danger');
+            if (appData.timerMode === 'countdown' && timerRunning) {
+                if (timerSeconds <= 10) display.classList.add('danger');
+                else if (timerSeconds <= 30) display.classList.add('warning');
+            }
+        }
+
+        function showTimerAlert() {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').textContent = '⏱️ 时间到！';
+            document.getElementById('confirmMessage').textContent = '计时结束，请注意！';
+            document.getElementById('confirmBtn').className = 'btn btn-primary';
+            document.getElementById('confirmBtn').textContent = '知道了';
+            document.getElementById('confirmBtn').onclick = () => { closeModal(); resetTimer(); };
+            modal.classList.add('active');
+        }
+
+        /* Helpers */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: '✓', error: '✕', info: 'ℹ' };
+            toast.innerHTML = `<span>${icons[type]}</span> ${escapeHtml(message)}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(100%)'; setTimeout(() => toast.remove(), 200); }, 2500);
+        }
+
+        function showConfirm(title, message, callback) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmTitle').textContent = title;
+            document.getElementById('confirmMessage').textContent = message;
+            document.getElementById('confirmBtn').className = 'btn btn-danger';
+            document.getElementById('confirmBtn').textContent = '确认';
+            document.getElementById('confirmBtn').onclick = () => { closeModal(); callback(); };
+            modal.classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('confirmModal').classList.remove('active'); }
+        function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        /* Help Modal */
+        const helpContent = {
+            'overview': `
+                <div class="help-section">
+                    <h3>🎯 工具简介</h3>
+                    <p>嘉游助手是一款专为教学场景设计的实用工具，简洁高效，开箱即用。</p>
+                    <p><strong>核心功能</strong>：班级管理、学生点名、分组竞赛、答题互动、课堂计时</p>
+                    <div class="help-tip">数据保存在浏览器本地存储中，关闭浏览器后数据自动保留。无需注册登录，打开即可使用。</div>
+                </div>
+                <div class="help-section">
+                    <h3>🚀 快速开始</h3>
+                    <div class="help-subsection">
+                        <h4>第一步：创建班级</h4>
+                        <p>在顶部输入班级名称（如"旅游1班"），点击"+ 新增班级"按钮。支持最多10个班级切换。</p>
+                    </div>
+                    <div class="help-subsection">
+                        <h4>第二步：导入学生</h4>
+                        <p>进入"📋 学生名单"页面，在文本框中粘贴或输入学生姓名（每行一个），点击"导入学生"按钮。</p>
+                    </div>
+                    <div class="help-subsection">
+                        <h4>第三步：开始使用</h4>
+                        <p>顶部导航栏有5个模块：学生名单、随机分组、随机点名、题目互动、课堂计时，点击即可切换。</p>
+                    </div>
+                </div>
+            `,
+            'students': `
+                <div class="help-section">
+                    <h3>📋 学生名单</h3>
+                    <p>管理班级学生信息，支持批量导入和删除。</p>
+                </div>
+                <div class="help-section">
+                    <h3>操作说明</h3>
+                    <table class="help-table">
+                        <tr><th>操作</th><th>说明</th></tr>
+                        <tr><td>批量导入</td><td>每行一个姓名，支持粘贴整班名单，自动去重</td></tr>
+                        <tr><td>删除学生</td><td>鼠标悬停到学生姓名上，显示删除按钮 ✕</td></tr>
+                        <tr><td>清空名单</td><td>点击"清空名单"按钮，统一清空当前班级所有学生</td></tr>
+                        <tr><td>切换班级</td><td>点击顶部班级标签即可切换，各班级数据独立</td></tr>
+                    </table>
+                </div>
+                <div class="help-section">
+                    <h3>示例输入</h3>
+                    <div class="help-code">张三
+李四
+王五
+赵六</div>
+                </div>
+            `,
+            'groups': `
+                <div class="help-section">
+                    <h3>👥 随机分组</h3>
+                    <p>将学生快速分成若干小组，适合课堂讨论、小组竞赛等场景。</p>
+                </div>
+                <div class="help-section">
+                    <h3>分组方式</h3>
+                    <table class="help-table">
+                        <tr><th>方式</th><th>操作</th><th>说明</th></tr>
+                        <tr><td>按每组人数</td><td>设置人数 → 生成分组</td><td>如设4人，则每组4人</td></tr>
+                        <tr><td>按分组数量</td><td>设置组数 → 生成分组</td><td>如设5组，自动均匀分配</td></tr>
+                        <tr><td>一键随机</td><td>点击"随机分组"按钮</td><td>系统自动决定分组数量</td></tr>
+                    </table>
+                </div>
+                <div class="help-section">
+                    <h3>积分排行榜</h3>
+                    <p>分组后自动显示积分榜，点击"+1"、"+5"、"-1"为小组加分或扣分。排行榜自动按分数排序，前三名显示金银铜牌图标。</p>
+                </div>
+            `,
+            'rollcall': `
+                <div class="help-section">
+                    <h3>🎲 随机点名</h3>
+                    <p>快速随机抽取学生或座位，支持单人或多人大屏展示。</p>
+                </div>
+                <div class="help-section">
+                    <h3>点名模式</h3>
+                    <table class="help-table">
+                        <tr><th>模式</th><th>说明</th></tr>
+                        <tr><td>名单点名</td><td>从已导入的学生名单中随机抽取，适合没有固定座位的班级</td></tr>
+                        <tr><td>座位点名</td><td>按座位编号随机抽取（排数×列数），适合有固定座位的教室</td></tr>
+                    </table>
+                </div>
+                <div class="help-section">
+                    <h3>操作说明</h3>
+                    <p>• 设置抽取人数（1-50人）</p>
+                    <p>• 点击"🎯 开始点名"启动动画</p>
+                    <p>• 本次已点名学生会排除在外</p>
+                    <p>• 点击"重置"可清空历史，重新开始</p>
+                    <div class="help-tip">点名结果约1.5秒后稳定显示，支持多人同时抽取。</div>
+                </div>
+            `,
+            'questions': `
+                <div class="help-section">
+                    <h3>📝 题目互动</h3>
+                    <p>管理题库、随机出题，适合课堂测验和答题互动。</p>
+                </div>
+                <div class="help-section">
+                    <h3>题目类型</h3>
+                    <table class="help-table">
+                        <tr><th>类型</th><th>选项</th><th>答案格式</th></tr>
+                        <tr><td>单选题</td><td>4个选项</td><td>如：A</td></tr>
+                        <tr><td>多选题</td><td>4个选项</td><td>如：AB（多个字母）</td></tr>
+                        <tr><td>判断题</td><td>无</td><td>正确 / 错误</td></tr>
+                        <tr><td>主观题</td><td>无</td><td>填写参考答案描述</td></tr>
+                    </table>
+                </div>
+                <div class="help-section">
+                    <h3>添加题目</h3>
+                    <p>1. 选择题目类型（单选/多选/判断/主观）</p>
+                    <p>2. 选择所属学科，填写标签（可选）</p>
+                    <p>3. 填写题目内容、选项、答案</p>
+                    <p>4. 点击"添加题目"</p>
+                </div>
+                <div class="help-section">
+                    <h3>批量导入格式</h3>
+                    <div class="help-code">【学科名】
+#标签1 #标签2
+题目内容
+A. 选项A
+B. 选项B
+C. 选项C
+D. 选项D
+答案：D</div>
+                    <div class="help-tip">每个【】开头的算一道题，不同题目之间用空行或 --- 分隔。#标签后带空格也能自动识别。</div>
+                </div>
+            `,
+            'timer': `
+                <div class="help-section">
+                    <h3>⏱️ 课堂计时</h3>
+                    <p>倒计时适合限时任务，正计时适合记录总时长。</p>
+                </div>
+                <div class="help-section">
+                    <h3>倒计时模式</h3>
+                    <p>点击预设按钮快速设置：30秒、1分钟、2分钟、5分钟、10分钟、30分钟、1小时。或输入自定义秒数。</p>
+                    <div class="help-tip">最后10秒显示红色警示，最后30秒显示橙色预警，时间到弹出提醒弹窗。</div>
+                </div>
+                <div class="help-section">
+                    <h3>正计时模式</h3>
+                    <p>切换到"正计时"后自动累加计时，适合统计学生完成作业的总时间。</p>
+                </div>
+                <div class="help-section">
+                    <h3>操作说明</h3>
+                    <p>• ▶ 开始 — 启动计时（再按变为⏸暂停）</p>
+                    <p>• ⟳ 重置 — 归零重新计时</p>
+                </div>
+            `,
+            'shortcuts': `
+                <div class="help-section">
+                    <h3>⌨️ 快捷操作汇总</h3>
+                    <table class="help-table">
+                        <tr><th>功能</th><th>操作入口</th></tr>
+                        <tr><td>新增班级</td><td>顶部输入框 + "+ 新增班级"按钮</td></tr>
+                        <tr><td>导入学生</td><td>📋 学生名单 → 粘贴名单 → "导入学生"</td></tr>
+                        <tr><td>生成分组</td><td>👥 随机分组 → 设置人数 → "生成分组"</td></tr>
+                        <tr><td>随机点名</td><td>🎲 随机点名 → 设置人数 → "🎯 开始点名"</td></tr>
+                        <tr><td>添加题目</td><td>📝 题目互动 → 选择类型 → 填写表单 → "添加题目"</td></tr>
+                        <tr><td>批量导入</td><td>📝 题目互动 → "批量导入" → 粘贴文本 → "确认导入"</td></tr>
+                        <tr><td>随机出题</td><td>📝 题目互动 → 🎯区域 → 设置数量 → "开始随机出题"</td></tr>
+                        <tr><td>开始计时</td><td>⏱️ 课堂计时 → 选择时间 → "▶ 开始"</td></tr>
+                    </table>
+                </div>
+                <div class="help-section">
+                    <h3>常见问题</h3>
+                    <p><strong>Q: 如何更换班级？</strong><br>点击顶部班级标签即可切换。</p>
+                    <p><strong>Q: 点名可以重复抽到同一个人吗？</strong><br>点名历史会排除已抽中学生，点击"重置"后可重新抽取。</p>
+                    <p><strong>Q: 手机可以用吗？</strong><br>支持PC/平板/手机自适应布局。</p>
+                </div>
+            `
+        };
+
+        function openHelpModal() {
+            const modal = document.getElementById('helpModal');
+            const body = document.getElementById('helpModalBody');
+            const navBtns = `
+                <div class="help-nav">
+                    <button class="help-nav-btn active" onclick="showHelpSection('overview', this)">🏠 概述</button>
+                    <button class="help-nav-btn" onclick="showHelpSection('students', this)">📋 学生</button>
+                    <button class="help-nav-btn" onclick="showHelpSection('groups', this)">👥 分组</button>
+                    <button class="help-nav-btn" onclick="showHelpSection('rollcall', this)">🎲 点名</button>
+                    <button class="help-nav-btn" onclick="showHelpSection('questions', this)">📝 题目</button>
+                    <button class="help-nav-btn" onclick="showHelpSection('timer', this)">⏱️ 计时</button>
+                    <button class="help-nav-btn" onclick="showHelpSection('shortcuts', this)">⌨️ 快捷</button>
+                </div>
+            `;
+            body.innerHTML = navBtns + helpContent['overview'];
+            modal.classList.add('active');
+        }
+
+        function showHelpSection(section, btn) {
+            document.querySelectorAll('.help-nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('helpModalBody').innerHTML = document.querySelector('.help-nav').outerHTML + helpContent[section];
+            // Rebind nav buttons after innerHTML
+            document.querySelectorAll('.help-nav-btn').forEach(b => {
+                b.addEventListener('click', function() {
+                    const sectionName = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+                    showHelpSection(sectionName, this);
+                });
+            });
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('active');
+        }
+
+        document.getElementById('helpModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeHelpModal();
+        });
+
+        /* Tab Nav */
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+            });
+        });
+
+        function renderAll() {
+            renderStudentList();
+            renderGroups();
+            renderLeaderboard();
+            renderSubjectBar();
+            renderTagFilter();
+            updateSubjectSelects();
+            renderQuestionList();
+            updateRollCallHistory();
+            resetTimer();
+        }
+
+        /* Init */
+        loadData();
+        renderClassTabs();
+        renderAll();
+        document.getElementById('btn5min').classList.add('active');
+        document.getElementById('confirmModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+        document.getElementById('fullscreenOverlay').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) {
+                const isLastQuestion = appData.currentQuizIndex >= appData.quizQuestions.length - 1;
+                if (isLastQuestion && answerShown) closeFullscreen();
+            }
+        });
+    </script>
+</body>
+</html>
